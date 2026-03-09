@@ -32,8 +32,9 @@ export function useBlogData() {
   const processImagePaths = (markdownContent) => {
     if (!markdownContent) return ''
     return markdownContent
-      .replace(/\]\((images\/[^)]+)\)/g, `](${RAW_BASE_URL}/$1)`)
-      .replace(/src=["'](images\/[^"']+)["']/g, `src="${RAW_BASE_URL}/$1"`)
+      // 兼容带 / 和不带 / 的路径
+      .replace(/\]\(\/?(images\/[^)]+)\)/g, `](${RAW_BASE_URL}/$1)`)
+      .replace(/src=["']\/?(images\/[^"']+)["']/g, `src="${RAW_BASE_URL}/$1"`)
   }
 
   const filteredArticles = computed(() => {
