@@ -9,7 +9,6 @@ const config = ref({
   showAlgorithms: false 
 })
 
-// 必须使用 raw 地址，否则取到的是 HTML 网页
 const RAW_BASE_URL = 'https://raw.githubusercontent.com/h0ll0w-AkuZr0guY/lcp-data/main'
 
 export function useBlogData() {
@@ -30,7 +29,6 @@ export function useBlogData() {
     }
   }
 
-  // 将 data.json 里的本地相对路径图片，转换为完整的 Github Raw 在线图片
   const processImagePaths = (markdownContent) => {
     if (!markdownContent) return ''
     return markdownContent
@@ -39,19 +37,32 @@ export function useBlogData() {
   }
 
   const filteredArticles = computed(() => {
-    if (!rawData.value) return []
+    // 确保拿到的是数组
+    if (!Array.isArray(rawData.value)) return []
+    
     let result = []
     
-    if (config.value.showInterviews && rawData.value.interviews) {
-      const interviews = rawData.value.interviews.map(item => ({
-        ...item,
-        type: 'interview',
-        content: processImagePaths(item.content) 
-      }))
-      result = result.concat(interviews)
-    }
+    // 遍历你的一维数组数据
+    rawData.value.forEach(item => {
+      // 过滤面经
+      if (config.value.showInterviews && item.type === 'interview') {
+        result.push({
+          ...item,
+          // 你的正文在 problemText 里
+          content: processImagePaths(item.problemText) 
+        })
+      }
+      // 过滤算法
+      if (config.value.showAlgorithms && item.type === 'algorithm') {
+        result.push({
+          ...item,
+          content: processImagePaths(item.problemText)
+        })
+      }
+    })
     
-    return result.sort((a, b) => (b.createTime || 0) - (a.createTime || 0))
+    // 使用 id (时间戳字符串) 进行降序排序，最新的在前面
+    return result.sort((a, b) => parseInt(b.id) - parseInt(a.id))
   })
 
   return { loadData, filteredArticles, config, isLoading, error }
